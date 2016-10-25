@@ -1,0 +1,38 @@
+# Reference config for BombX.
+# BombX will expect the actual config file to be saved as autoexec.cfg
+
+sv_name "unnamed BombX server"
+#sv_motd ""
+#sv_port 8309
+
+# Keep these secret.
+sv_rcon_password ""
+sv_rcon_mod_password ""
+
+# Set sv_register to 1 for a public server.
+sv_register 0
+sv_max_clients 16
+sv_spectator_slots 8
+
+sv_inactivekick 0
+sv_inactivekick_time 5
+
+
+# Best not to make this too long or too short.
+sv_warmup 4
+
+#Don't mess with timelimit or scorelimit, they do nothing useful at the moment.
+sv_timelimit 0
+sv_scorelimit 0
+
+# BombCaveX is a variant of a classic map, revamped to show off the new features of BombX.
+sv_map "BombCaveX"
+sv_maprotation ""
+sv_rounds_per_map 1
+
+sv_vote_kick 1
+
+add_vote "--- Maps ---" "say The maps are listed below, but this is not one of them."
+add_vote "BombCaveX" "sv_map BombCaveX"
+add_vote "bx_icyarena" "sv_map bx_icyarena"
+add_vote "bomb_s" "sv_map bomb_s"
