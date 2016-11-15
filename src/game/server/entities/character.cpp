@@ -592,9 +592,9 @@ void CCharacter::Tick()
 
 	int PrevArmor = m_Armor;
 	// Sets Armor to display bomb time left.
-	m_Armor =  clamp(round((float) (10.f*GameServer()->GetFuse()/(g_Config.m_SvBombFuse*Server()->TickSpeed()))), 0, 10);
+	m_Armor =  (int) clamp(round((float) (10.f*GameServer()->GetFuse()/(g_Config.m_SvBombFuse*Server()->TickSpeed()))), 0, 10);
 	// Sets Health to show number of players still alive, if less than 10.
-	m_Health = clamp(Server()->MaxClients() - g_Config.m_SvSpectatorSlots, 0, 10);
+	m_Health = (int) clamp(Server()->MaxClients() - g_Config.m_SvSpectatorSlots, 0, 10);
 
 	// Add an audible signal emitted by the bomb, and broadcast to players about the current status of the bomb.
 	int CurrentFuse = GameServer()->GetFuse()/Server()->TickSpeed();
@@ -606,7 +606,7 @@ void CCharacter::Tick()
 			char bBuf[128];
 			if (m_pPlayer->GetCID() == GameServer()->GetBID())
 			{
-				str_format(bBuf, sizeof(bBuf), "You are the bomb! Hit someone in %d seconds or you'll explode!", (GameServer()->GetFuse()*1.0f)/Server()->TickSpeed());
+//				str_format(bBuf, sizeof(bBuf), "You are the bomb! Hit someone in %d seconds or you'll explode!", (GameServer()->GetFuse()*1.0f)/Server()->TickSpeed());
 			}
 			else
 			{

@@ -1,4 +1,6 @@
-Copyright (c) 2012 Magnus Auvinen
+BombX - teeworlds bomb tag
+
+Teeworlds is Copyright (c) 2012 Magnus Auvinen
 
 
 This software is provided 'as-is', without any express or implied

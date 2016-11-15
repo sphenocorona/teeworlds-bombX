@@ -36,3 +36,5 @@ add_vote "--- Maps ---" "say The maps are listed below, but this is not one of t
 add_vote "BombCaveX" "sv_map BombCaveX"
 add_vote "bx_icyarena" "sv_map bx_icyarena"
 add_vote "bomb_s" "sv_map bomb_s"
+add_vote "bx1" "sv_map bx1"
+add_vote "bx2" "sv_map bx2"
