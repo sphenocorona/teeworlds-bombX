@@ -59,17 +59,17 @@ void CGameControllerBOMBX::Tick()
 		g_Config.m_SvSpectatorSlots = min(MAX_CLIENTS-m_LivePlayers, MAX_CLIENTS-1);
 
 		// if the bomb exists and has been selected, make their fuse burn
-		if (GameServer()->GetBID() >= 0){
+		if (GameServer()->GetBIDs() >= 0){
 			if(GameServer()->GetFuse() > 0) {
 				GameServer()->Fuse();
 				GameServer()->HammerBackTick();
 			} else {
-				if(GameServer()->m_apPlayers[GameServer()->GetBID()] && GameServer()->m_apPlayers[GameServer()->GetBID()]->GetTeam() != TEAM_SPECTATORS) {
-					GameServer()->m_apPlayers[GameServer()->GetBID()]->GetCharacter()->Die(GameServer()->GetBID(), WEAPON_GRENADE);
+				if(GameServer()->m_apPlayers[GameServer()->GetBIDs()] && GameServer()->m_apPlayers[GameServer()->GetBIDs()]->GetTeam() != TEAM_SPECTATORS) {
+					GameServer()->m_apPlayers[GameServer()->GetBIDs()]->GetCharacter()->Die(GameServer()->GetBIDs(), WEAPON_GRENADE);
 				}
 			}
 		} else { // otherwise, (so when bomb id is -1) we will randomly choose a bomb.
-			if (GameServer()->GetBID() == -1) {
+			if (GameServer()->GetBIDs() == -1) {
 				int BombChoice = (rand() % m_LivePlayers);
 				if(GameServer()->m_apPlayers[m_LiveIDs[BombChoice]] && GameServer()->m_apPlayers[m_LiveIDs[BombChoice]]->GetTeam() != TEAM_SPECTATORS) {
 					GameServer()->SetBID(m_LiveIDs[BombChoice]);
@@ -79,18 +79,18 @@ void CGameControllerBOMBX::Tick()
 		}
 
 		// Make the bomb player look special.
-		if (GameServer()->GetBID() >= 0){
+		if (GameServer()->GetBIDs() >= 0){
 
 			// Change the player skin to be bomb skin.
-			str_copy(GameServer()->m_apPlayers[GameServer()->GetBID()]->m_TeeInfos.m_SkinName, "bomb",
-					sizeof(GameServer()->m_apPlayers[GameServer()->GetBID()]->m_TeeInfos.m_SkinName));
+			str_copy(GameServer()->m_apPlayers[GameServer()->GetBIDs()]->m_TeeInfos.m_SkinName, "bomb",
+					sizeof(GameServer()->m_apPlayers[GameServer()->GetBIDs()]->m_TeeInfos.m_SkinName));
 
-			GameServer()->m_apPlayers[GameServer()->GetBID()]->m_TeeInfos.m_ColorBody = 16776960;
-			GameServer()->m_apPlayers[GameServer()->GetBID()]->m_TeeInfos.m_UseCustomColor = 1;
+			GameServer()->m_apPlayers[GameServer()->GetBIDs()]->m_TeeInfos.m_ColorBody = 16776960;
+			GameServer()->m_apPlayers[GameServer()->GetBIDs()]->m_TeeInfos.m_UseCustomColor = 1;
 		}
 
 		for(int j = 0; j < MAX_CLIENTS; j++) {
-			if(GameServer()->m_apPlayers[j] && j != GameServer()->GetBID()) {
+			if(GameServer()->m_apPlayers[j] && j != GameServer()->GetBIDs()) {
 
 				// If the player looks like a bomb, fix that...
 				if (strncmp("bomb", GameServer()->m_apPlayers[j]->m_TeeInfos.m_SkinName, 4) == 0)
@@ -135,9 +135,9 @@ int CGameControllerBOMBX::OnCharacterDeath(class CCharacter *pVictim, class CPla
 	IGameController::OnCharacterDeath(pVictim, pKiller, Weapon);
 	if(!m_Warmup){
 		pVictim->GetPlayer()->SetTeamDirect(TEAM_SPECTATORS);
-		if (GameServer()->GetBID() >= 0){
-			if (pVictim->GetPlayer()->GetCID() == GameServer()->GetBID() &&
-					GameServer()->m_apPlayers[GameServer()->GetBID()]) {
+		if (GameServer()->GetBIDs() >= 0){
+			if (pVictim->GetPlayer()->GetCID() == GameServer()->GetBIDs() &&
+					GameServer()->m_apPlayers[GameServer()->GetBIDs()]) {
 				GameServer()->SetBID(-1); // Set the current bomb to undefined, so that the bomb will be reset.
 				// Bomb EXPLODE!!!!
 				pVictim->MakeDeathGrenade(pKiller);

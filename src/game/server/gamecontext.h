@@ -10,6 +10,8 @@
 #include <game/layers.h>
 #include <game/voting.h>
 
+#include <vector>
+
 #include "eventhandler.h"
 #include "gamecontroller.h"
 #include "gameworld.h"
@@ -87,21 +89,22 @@ public:
 	CGameWorld m_World;
 
 	// for BombX
-	int m_BombID;
+	int m_BombIDs;
 	int m_ExplosionTick;
 	int m_PrevExplosionTick;
 	int m_HammerBackDelay;
-	int m_LastBombID;
-	int GetBID() { return m_BombID; }
-	void SetBID(int NewBombID) { m_LastBombID = m_BombID; m_BombID = NewBombID; }
-	void SetFuse(int BombFuse) { m_ExplosionTick = BombFuse; m_PrevExplosionTick = BombFuse; }
-	int GetFuse() { return m_ExplosionTick; }
-	int GetLastFuse() { return m_PrevExplosionTick; }
-	void Fuse() { m_PrevExplosionTick = m_ExplosionTick; m_ExplosionTick--; }
-	void DmgFuse(int BurnTime) { m_PrevExplosionTick = m_ExplosionTick; m_ExplosionTick -= BurnTime; }
-	void HammerBackTick() { if (m_HammerBackDelay > 0) m_HammerBackDelay--; }
-	void SetHammerBack(int delay) { m_HammerBackDelay = delay; m_ExplosionTick += delay / 2;}
-	bool CanHammerBack(int PlayerID) { return (m_HammerBackDelay <= 0 || PlayerID != m_LastBombID); }
+//	int m_LastBombID;
+	int GetBIDs() { return *m_BombIDs; }
+	void SetBID(int NewBombID) { /* m_LastBombID = *m_BombIDs; */ *m_BombIDs |= 1<<NewBombID; }
+
+//	void SetFuse(int BombFuse) { m_ExplosionTick = BombFuse; m_PrevExplosionTick = BombFuse; }
+//	int GetFuse() { return m_ExplosionTick; }
+//	int GetLastFuse() { return m_PrevExplosionTick; }
+//	void Fuse() { m_PrevExplosionTick = m_ExplosionTick; m_ExplosionTick--; }
+//	void DmgFuse(int BurnTime) { m_PrevExplosionTick = m_ExplosionTick; m_ExplosionTick -= BurnTime; }
+//	void HammerBackTick() { if (m_HammerBackDelay > 0) m_HammerBackDelay--; }
+//	void SetHammerBack(int delay) { m_HammerBackDelay = delay; m_ExplosionTick += delay / 2;}
+//	bool CanHammerBack(int PlayerID) { return (m_HammerBackDelay <= 0 || PlayerID != m_LastBombID); }
 
 
 	// helper functions

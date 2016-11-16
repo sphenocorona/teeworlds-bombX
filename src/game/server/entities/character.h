@@ -145,13 +145,11 @@ private:
 		int m_OldVelAmount;
 	} m_Ninja;
 
-//	// bomb
-//	struct Bomb
-//	{
-//		int m_BombID;
-//		int m_ExplosionTick;
-//
-//	} m_Bomb;
+	// bomb
+	struct Bomb
+	{
+		int m_ExplosionTick;
+	} m_Bomb;
 
 	// the player core for the physics
 	CCharacterCore m_Core;

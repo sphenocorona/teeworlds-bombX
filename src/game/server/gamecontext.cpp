@@ -37,7 +37,7 @@ void CGameContext::Construct(int Resetting)
 	m_NumVoteOptions = 0;
 	m_LockTeams = 0;
 
-	m_BombID = -1;
+	*m_BombIDs = -1;
 
 	if(Resetting==NO_RESET)
 		m_pVoteOptionHeap = new CHeap();

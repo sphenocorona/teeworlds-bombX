@@ -253,8 +253,8 @@ void CCharacter::FireWeapon()
 				Hits++;
 
 
-				if (GameServer()->GetBID() >= 0) {
-					if(m_pPlayer->GetCID() == GameServer()->GetBID()) {
+				if (GameServer()->GetBIDs() >= 0) {
+					if(m_pPlayer->GetCID() == GameServer()->GetBIDs()) {
 						if (GameServer()->CanHammerBack(pTarget->GetPlayer()->GetCID())) {
 							GameServer()->SetBID(pTarget->GetPlayer()->GetCID());
 							GameServer()->SetHammerBack(g_Config.m_SvHammerBackDelay*Server()->TickSpeed()/1000);
@@ -264,7 +264,7 @@ void CCharacter::FireWeapon()
 							}
 						}
 					}
-					else if(!(m_pPlayer->GetCID() == GameServer()->GetBID()) && !(pTarget->GetPlayer()->GetCID() == GameServer()->GetBID())) {
+					else if(!(m_pPlayer->GetCID() == GameServer()->GetBIDs()) && !(pTarget->GetPlayer()->GetCID() == GameServer()->GetBIDs())) {
 						if (pTarget->GetPlayer()->m_StunTick <= -100*g_Config.m_SvStunTime*Server()->TickSpeed()/1000) {
 							pTarget->GetPlayer()->m_StunTick = g_Config.m_SvStunTime*Server()->TickSpeed()/1000;
 							pTarget->GiveNinja();
@@ -604,15 +604,15 @@ void CCharacter::Tick()
 		if (g_Config.m_SvBombBroadcast)
 		{
 			char bBuf[128];
-			if (m_pPlayer->GetCID() == GameServer()->GetBID())
+			if (m_pPlayer->GetCID() == GameServer()->GetBIDs())
 			{
-//				str_format(bBuf, sizeof(bBuf), "You are the bomb! Hit someone in %d seconds or you'll explode!", (GameServer()->GetFuse()*1.0f)/Server()->TickSpeed());
+				str_format(bBuf, sizeof(bBuf), "You are the bomb! Hit someone in %d seconds or you'll explode!", (int) (GameServer()->GetFuse()*1.0f)/Server()->TickSpeed());
 			}
 			else
 			{
-				if (GameServer()->GetBID() >= 0)
+				if (GameServer()->GetBIDs() >= 0)
 				{
-					str_format(bBuf, sizeof(bBuf), "%s is the bomb!", Server()->ClientName(GameServer()->GetBID()));
+					str_format(bBuf, sizeof(bBuf), "%s is the bomb!", Server()->ClientName(GameServer()->GetBIDs()));
 				}
 				else
 				{
@@ -638,7 +638,7 @@ void CCharacter::Tick()
 			GameServer()->SendBroadcast(bBuf,m_pPlayer->GetCID());
 		}
 
-		if (m_pPlayer->GetCID() == GameServer()->GetBID())
+		if (m_pPlayer->GetCID() == GameServer()->GetBIDs())
 		{
 			if (m_Armor < 4)
 			{
