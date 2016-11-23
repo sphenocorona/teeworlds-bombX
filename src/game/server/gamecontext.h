@@ -89,19 +89,16 @@ public:
 	CGameWorld m_World;
 
 	// for BombX
-	int m_BombIDs;
-	int m_ExplosionTick;
-	int m_PrevExplosionTick;
-	int m_HammerBackDelay;
+	int64 m_BombIDs;
+	int m_ExplosionTick[MAX_CLIENTS];
+	int m_HammerBackDelay[MAX_CLIENTS];
 //	int m_LastBombID;
-	int GetBIDs() { return *m_BombIDs; }
-	void SetBID(int NewBombID) { /* m_LastBombID = *m_BombIDs; */ *m_BombIDs |= 1<<NewBombID; }
-
-//	void SetFuse(int BombFuse) { m_ExplosionTick = BombFuse; m_PrevExplosionTick = BombFuse; }
-//	int GetFuse() { return m_ExplosionTick; }
-//	int GetLastFuse() { return m_PrevExplosionTick; }
-//	void Fuse() { m_PrevExplosionTick = m_ExplosionTick; m_ExplosionTick--; }
-//	void DmgFuse(int BurnTime) { m_PrevExplosionTick = m_ExplosionTick; m_ExplosionTick -= BurnTime; }
+	int64 GetBIDs() { return m_BombIDs; }
+	void SetBID(int NewBombID) { /* m_LastBombID = *m_BombIDs; */ m_BombIDs |= 1<<NewBombID; }
+	void SetFuse(int BombFuse, int ID) { m_ExplosionTick[ID] = BombFuse; }
+	int GetFuse(int ID) { return m_ExplosionTick[ID]; }
+	void Fuse(int ID) { m_ExplosionTick[ID]--; }
+	void DmgFuse(int BurnTime, int ID) { m_ExplosionTick[ID] -= BurnTime; }
 //	void HammerBackTick() { if (m_HammerBackDelay > 0) m_HammerBackDelay--; }
 //	void SetHammerBack(int delay) { m_HammerBackDelay = delay; m_ExplosionTick += delay / 2;}
 //	bool CanHammerBack(int PlayerID) { return (m_HammerBackDelay <= 0 || PlayerID != m_LastBombID); }

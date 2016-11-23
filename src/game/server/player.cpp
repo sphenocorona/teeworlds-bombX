@@ -81,7 +81,7 @@ void CPlayer::Tick()
 				if(m_StunTick == 0 && m_pCharacter->GetActiveWeapon() == WEAPON_NINJA){
 					m_pCharacter->SetWeapon(WEAPON_HAMMER);
 				}
-				if(m_StunTick > -100*g_Config.m_SvStunTime*Server()->TickSpeed()/1000)
+				if(m_StunTick > -200*Server()->TickSpeed()/1000)
 					m_StunTick--;
 			}
 			else

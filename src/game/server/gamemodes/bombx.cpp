@@ -59,6 +59,7 @@ void CGameControllerBOMBX::Tick()
 		g_Config.m_SvSpectatorSlots = min(MAX_CLIENTS-m_LivePlayers, MAX_CLIENTS-1);
 
 		// if the bomb exists and has been selected, make their fuse burn
+		//TODO: update to handle multiple bombs
 		if (GameServer()->GetBIDs() >= 0){
 			if(GameServer()->GetFuse() > 0) {
 				GameServer()->Fuse();
@@ -79,6 +80,7 @@ void CGameControllerBOMBX::Tick()
 		}
 
 		// Make the bomb player look special.
+		//TODO: update to handle multiple bombs
 		if (GameServer()->GetBIDs() >= 0){
 
 			// Change the player skin to be bomb skin.
@@ -89,6 +91,7 @@ void CGameControllerBOMBX::Tick()
 			GameServer()->m_apPlayers[GameServer()->GetBIDs()]->m_TeeInfos.m_UseCustomColor = 1;
 		}
 
+		//TODO: update to handle multiple bombs
 		for(int j = 0; j < MAX_CLIENTS; j++) {
 			if(GameServer()->m_apPlayers[j] && j != GameServer()->GetBIDs()) {
 
@@ -130,6 +133,7 @@ void CGameControllerBOMBX::EnumerateLivePlayers()
 	}
 }
 
+//TODO: update to handle multiple bombs
 int CGameControllerBOMBX::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon)
 {
 	IGameController::OnCharacterDeath(pVictim, pKiller, Weapon);
