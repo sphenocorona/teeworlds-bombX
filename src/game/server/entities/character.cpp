@@ -255,9 +255,9 @@ void CCharacter::FireWeapon()
 //TODO: update to handle multiple bombs, remove hammerback stuff temporarily
 				if (GameServer()->GetBIDs() >= 0) {
 					//Bomb passing off bomb to other person (or not)
-					if((1<<m_pPlayer->GetCID()) && GameServer()->GetBIDs() == GameServer()->GetBIDs()) {
+					if(GameServer()->IsBomb(m_pPlayer->GetCID())) {
 //						if (GameServer()->CanHammerBack(pTarget->GetPlayer()->GetCID())) {
-							GameServer()->SetBID(pTarget->GetPlayer()->GetCID());
+							GameServer()->PassBID(pTarget->GetPlayer()->GetCID(), m_pPlayer->GetCID());
 //							GameServer()->SetHammerBack(g_Config.m_SvHammerBackDelay*Server()->TickSpeed()/1000);
 							if (pTarget->GetPlayer()->m_StunTick >= -100*Server()->TickSpeed()/1000)
 							{
@@ -266,8 +266,7 @@ void CCharacter::FireWeapon()
 						}
 					}
 					// Stun non-bomb opponents
-					else if(!((1<<m_pPlayer->GetCID()) && GameServer()->GetBIDs() == GameServer()->GetBIDs())
-							&& !((1<<pTarget->GetPlayer()->GetCID()) && GameServer()->GetBIDs() == GameServer()->GetBIDs())) {
+					else if(!GameServer()->IsBomb(m_pPlayer->GetCID()) && !GameServer()->IsBomb(pTarget->GetPlayer()->GetCID())) {
 						if (pTarget->GetPlayer()->m_StunTick <= -100*Server()->TickSpeed()/1000) {
 							pTarget->GetPlayer()->m_StunTick = g_Config.m_SvStunTime*Server()->TickSpeed()/1000;
 							pTarget->GiveNinja();
@@ -277,7 +276,6 @@ void CCharacter::FireWeapon()
 						GameServer()->DmgFuse(Server()->TickSpeed(), pTarget->GetPlayer()->GetCID());
 					}
 				}
-			}
 
 			// if we Hit anything, we have to wait for the reload
 			if(Hits)
@@ -599,50 +597,49 @@ void CCharacter::Tick()
 	// Sets Health to show number of players still alive, if less than 10.
 	m_Health = (int) clamp(Server()->MaxClients() - g_Config.m_SvSpectatorSlots, 0, 10);
 
-	// Add an audible signal emitted by the bomb, and broadcast to players about the current status of the bomb.
-//	int CurrentFuse = GameServer()->GetFuse()/Server()->TickSpeed();
-//	int PrevFuse = GameServer()->GetLastFuse()/Server()->TickSpeed();
-//	if (PrevFuse > CurrentFuse)
-//	{
-//		if (g_Config.m_SvBombBroadcast)
-//		{
-//			char bBuf[128]; //TODO: update to handle multiple bombs
-//			if (m_pPlayer->GetCID() == GameServer()->GetBIDs())
-//			{
-//				str_format(bBuf, sizeof(bBuf), "You are the bomb! Hit someone in %d seconds or you'll explode!", (int) (GameServer()->GetFuse()*1.0f)/Server()->TickSpeed());
-//			}
-//			else
-//			{
+//	Add an audible signal emitted by the bomb, and broadcast to players about the current status of the bomb.
+	float CurrentFuse = ((float) GameServer()->GetFuse(m_pPlayer->GetCID()))/Server()->TickSpeed();
+	if ((int) (CurrentFuse + 1.l/Server()->TickSpeed()) > (int) CurrentFuse)
+	{
+		if (g_Config.m_SvBombBroadcast)
+		{
+			char bBuf[128]; //TODO: update to handle multiple bombs
+			if (GameServer()->IsBomb(m_pPlayer->GetCID()))
+			{
+				str_format(bBuf, sizeof(bBuf), "You are the bomb! Hit someone in %d seconds or you'll explode!", (int) CurrentFuse);
+			}
+			else
+			{
 //				if (GameServer()->GetBIDs() >= 0)
 //				{
-//					str_format(bBuf, sizeof(bBuf), "%s is the bomb!", Server()->ClientName(GameServer()->GetBIDs()));
+//					str_format(bBuf, sizeof(bBuf), "", 1);
 //				}
 //				else
 //				{
-//					int ActivePlayers = 0;
-//					for(int j = 0; j < MAX_CLIENTS; j++)
-//					{
-//						if (GameServer()->m_apPlayers[j] && GameServer()->m_apPlayers[j]->m_PreferredTeam != TEAM_SPECTATORS)
-//						{
-//							ActivePlayers++;
-//						}
-//					}
-//					if (ActivePlayers < 2) {
-//						str_format(bBuf, sizeof(bBuf), "At least 2 players are required to play");
-//					}
-//					else
-//					{
-//						// if we don't store an empty string to the buffer, the broadcast may exhibit undefined behavior like "[][]K"
-//						str_format(bBuf, sizeof(bBuf), "");
-//					}
-//
+					int ActivePlayers = 0;
+					for(int j = 0; j < MAX_CLIENTS; j++)
+					{
+						if (GameServer()->m_apPlayers[j] && GameServer()->m_apPlayers[j]->m_PreferredTeam != TEAM_SPECTATORS)
+						{
+							ActivePlayers++;
+						}
+					}
+					if (ActivePlayers < 2) {
+						str_format(bBuf, sizeof(bBuf), "At least 2 players are required to play");
+					}
+					else
+					{
+						// if we don't store an empty string to the buffer, the broadcast may exhibit undefined behavior like "[][]K"
+						str_format(bBuf, sizeof(bBuf), "");
+					}
+
 //				}
-//			}
-//			GameServer()->SendBroadcast(bBuf,m_pPlayer->GetCID());
-//		}
+			}
+			GameServer()->SendBroadcast(bBuf,m_pPlayer->GetCID());
+		}
 
 		//TODO: update to handle multiple bombs
-		if ((1<<m_pPlayer->GetCID()) && GameServer()->GetBIDs() == GameServer()->GetBIDs())
+		if (GameServer()->IsBomb(m_pPlayer->GetCID()))
 		{
 			if (m_Armor < 4)
 			{
@@ -814,8 +811,8 @@ bool CCharacter::TakeDamage(vec2 Force, int Dmg, int From, int Weapon)
 		return false;
 
 	if(Weapon == WEAPON_GRENADE) {
-		GameServer()->SetBID(m_pPlayer->GetCID());
-		GameServer()->SetFuse(g_Config.m_SvBombFuse*Server()->TickSpeed());
+//		GameServer()->SetBID(m_pPlayer->GetCID());
+//		GameServer()->SetFuse(g_Config.m_SvBombFuse*Server()->TickSpeed(),m_pPlayer->GetCID());
 	}
 
 	// m_pPlayer only inflicts half damage on self

@@ -6,6 +6,7 @@
 #include <engine/server.h>
 #include <engine/console.h>
 #include <engine/shared/memheap.h>
+#include <stdio.h>
 
 #include <game/layers.h>
 #include <game/voting.h>
@@ -91,16 +92,21 @@ public:
 	// for BombX
 	int64 m_BombIDs;
 	int m_ExplosionTick[MAX_CLIENTS];
-	int m_HammerBackDelay[MAX_CLIENTS];
+//	int m_HammerBackDelay[MAX_CLIENTS];
 //	int m_LastBombID;
 	int64 GetBIDs() { return m_BombIDs; }
+	bool IsBomb(int ClientID) { return (1<<ClientID) & m_BombIDs; }
+	void PassBID(int NewBombID, int OldBombID) { m_BombIDs |= 1<<NewBombID; m_BombIDs &= ~(1<<OldBombID); m_ExplosionTick[NewBombID] = m_ExplosionTick[OldBombID]; }
 	void SetBID(int NewBombID) { /* m_LastBombID = *m_BombIDs; */ m_BombIDs |= 1<<NewBombID; }
-	void SetFuse(int BombFuse, int ID) { m_ExplosionTick[ID] = BombFuse; }
-	int GetFuse(int ID) { return m_ExplosionTick[ID]; }
-	void Fuse(int ID) { m_ExplosionTick[ID]--; }
-	void DmgFuse(int BurnTime, int ID) { m_ExplosionTick[ID] -= BurnTime; }
-//	void HammerBackTick() { if (m_HammerBackDelay > 0) m_HammerBackDelay--; }
-//	void SetHammerBack(int delay) { m_HammerBackDelay = delay; m_ExplosionTick += delay / 2;}
+	void RemoveBID(int ClientID) { m_BombIDs &= ~(1<<ClientID); m_ExplosionTick[ClientID] = 0; }
+	void ResetBIDs() { m_BombIDs = 0; }
+	void SetFuse(int BombFuse, int ClientID) { m_ExplosionTick[ClientID] = BombFuse; }
+	int GetFuse(int ClientID) { return m_ExplosionTick[ClientID]; }
+	void Fuse(int ClientID) { m_ExplosionTick[ClientID]--; }
+	void BurnDown() { for (int i = 0; i < MAX_CLIENTS; ++i) { if (m_ExplosionTick[i] > 0) m_ExplosionTick[i]--; } }
+	void DmgFuse(int BurnTime, int ClientID) { m_ExplosionTick[ClientID] -= BurnTime; }
+//	void HammerBackTick() { for (int i = 0; i < MAX_CLIENTS; ++i) { if (m_HammerBackDelay[i] > 0) m_HammerBackDelay[i]--; } }
+//	void SetHammerBack(int Delay, int ClientID) { m_HammerBackDelay[ClientID] = Delay; m_ExplosionTick[ClientID] += Delay; }
 //	bool CanHammerBack(int PlayerID) { return (m_HammerBackDelay <= 0 || PlayerID != m_LastBombID); }
 
 

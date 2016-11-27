@@ -4,6 +4,7 @@
 #define GAME_SERVER_GAMEMODES_BOMBX_H
 #include <game/server/gamecontroller.h>
 #include <game/server/entity.h>
+#include <vector>
 
 // you can subclass GAMECONTROLLER_CTF, GAMECONTROLLER_TDM etc if you want
 // todo a modification with their base as well.
@@ -23,8 +24,10 @@ public:
 
 	int m_ActivePlayers;
 	int m_LivePlayers;
-	int m_LiveIDs[16];
+	std::vector<int> m_LiveIDs;
+	std::vector<int> m_NotBombs; // Used to make bomb selection easy.
 	void EnumerateLivePlayers();
+	void ChooseBomb();
 
 	void MakeWarningLasers(class CPlayer *pBomb);
 	char m_BombSkin[64];

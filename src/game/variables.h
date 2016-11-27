@@ -88,6 +88,7 @@ MACRO_CONFIG_INT(SvStunTime, sv_stun_time, 450, 0, 5000, CFGFLAG_SERVER, "Time e
 MACRO_CONFIG_INT(SvBombBroadcast, sv_bomb_broadcast, 1, 0, 1, CFGFLAG_SERVER, "Allow the server to broadcast the current bomb.")
 MACRO_CONFIG_INT(SvHammerBackDelay, sv_hammerback_delay, 100, 0, 2000, CFGFLAG_SERVER, "Number of ms to wait before allowing new bomb to hit a tee (default 100)")
 MACRO_CONFIG_STR(SvDefaultSkin, sv_default_skin, 24, "coala", CFGFLAG_SERVER, "Skin to switch bomb impostors to.")
+MACRO_CONFIG_INT(SvBombRatio, sv_bomb_ratio, 1600, 101, 1600, CFGFLAG_SERVER, "Approximate maximum players total per bomb, times 100. (default 1600)")
 
 // debug
 #ifdef CONF_DEBUG // this one can crash the server if not used correctly

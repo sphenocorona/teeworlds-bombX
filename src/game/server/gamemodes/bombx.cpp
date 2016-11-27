@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <cstring>
 #include <string>
+#include <vector>
 
 #include <game/server/entities/character.h>
 #include <game/server/entities/laser.h>
@@ -33,6 +34,7 @@ void CGameControllerBOMBX::DoWarmup(int Seconds)
 {
 	IGameController::DoWarmup(Seconds);
 	g_Config.m_SvSpectatorSlots = 0;
+	GameServer()->ResetBIDs();
 	for(int j = 0; j < MAX_CLIENTS; j++) {
 		if(GameServer()->m_apPlayers[j] && GameServer()->m_apPlayers[j]->GetTeam() == TEAM_SPECTATORS &&
 				GameServer()->m_apPlayers[j]->m_PreferredTeam != TEAM_SPECTATORS){
@@ -43,14 +45,20 @@ void CGameControllerBOMBX::DoWarmup(int Seconds)
 
 void CGameControllerBOMBX::Tick()
 {
+	// Testing something out
+//	GameServer()->GameType();
+
+
 	// this is the main part of the gamemode, this function is run every tick
 
 	IGameController::Tick();
 
+	printf("BIDs: %o\n", (int) GameServer()->GetBIDs());
+
 	// Allow players to join during the warmup period.
 	if(m_Warmup){
 		g_Config.m_SvSpectatorSlots = 0;
-		GameServer()->SetBID(-1);
+		GameServer()->ResetBIDs();
 	}
 	else // However, players cannot join during the actual game.
 	{
@@ -60,40 +68,53 @@ void CGameControllerBOMBX::Tick()
 
 		// if the bomb exists and has been selected, make their fuse burn
 		//TODO: update to handle multiple bombs
-		if (GameServer()->GetBIDs() >= 0){
-			if(GameServer()->GetFuse() > 0) {
-				GameServer()->Fuse();
-				GameServer()->HammerBackTick();
-			} else {
-				if(GameServer()->m_apPlayers[GameServer()->GetBIDs()] && GameServer()->m_apPlayers[GameServer()->GetBIDs()]->GetTeam() != TEAM_SPECTATORS) {
-					GameServer()->m_apPlayers[GameServer()->GetBIDs()]->GetCharacter()->Die(GameServer()->GetBIDs(), WEAPON_GRENADE);
+		if (!((GameServer()->GetBIDs() == 0) || ((m_LivePlayers - m_NotBombs.size()) < ((m_LivePlayers * 100.f) / g_Config.m_SvBombRatio)))){
+			GameServer()->BurnDown();
+//			GameServer()->HammerBackTick();
+
+			for (int i = 0; i < MAX_CLIENTS; ++i) {
+				if (GameServer()->m_apPlayers[i]) {
+					if ((GameServer()->GetFuse(i) <= 0) && GameServer()->IsBomb(i)) {
+						GameServer()->m_apPlayers[i]->GetCharacter()->Die(i, WEAPON_GRENADE);
+					}
+					// attempt to fix BID ghosting that leads to server crashes.
+					if (GameServer()->IsBomb(i) && (GameServer()->m_apPlayers[i]->GetTeam() == TEAM_SPECTATORS)) {
+						GameServer()->RemoveBID(i);
+					}
 				}
+
 			}
-		} else { // otherwise, (so when bomb id is -1) we will randomly choose a bomb.
-			if (GameServer()->GetBIDs() == -1) {
-				int BombChoice = (rand() % m_LivePlayers);
-				if(GameServer()->m_apPlayers[m_LiveIDs[BombChoice]] && GameServer()->m_apPlayers[m_LiveIDs[BombChoice]]->GetTeam() != TEAM_SPECTATORS) {
-					GameServer()->SetBID(m_LiveIDs[BombChoice]);
-					GameServer()->SetFuse(g_Config.m_SvBombFuse*Server()->TickSpeed());
-				}
-			}
+			// old single-bomb version of the section
+//			if(GameServer()->GetFuse() > 0) {
+//				GameServer()->Fuse();
+//				GameServer()->HammerBackTick();
+//			} else {
+//				if(GameServer()->m_apPlayers[GameServer()->GetBIDs()] && GameServer()->m_apPlayers[GameServer()->GetBIDs()]->GetTeam() != TEAM_SPECTATORS) {
+//					GameServer()->m_apPlayers[GameServer()->GetBIDs()]->GetCharacter()->Die(GameServer()->GetBIDs(), WEAPON_GRENADE);
+//				}
+//			}
+		} else { // If it's the start of a round, then make players bombs. Has not been edited yet to work for multiple, though.
+			ChooseBomb();
 		}
 
 		// Make the bomb player look special.
 		//TODO: update to handle multiple bombs
-		if (GameServer()->GetBIDs() >= 0){
+		if (GameServer()->GetBIDs() > 0){
 
-			// Change the player skin to be bomb skin.
-			str_copy(GameServer()->m_apPlayers[GameServer()->GetBIDs()]->m_TeeInfos.m_SkinName, "bomb",
-					sizeof(GameServer()->m_apPlayers[GameServer()->GetBIDs()]->m_TeeInfos.m_SkinName));
+			for (int i = 0; i < MAX_CLIENTS; ++i) {
+				if ((GameServer()->GetFuse(i) > 0) && GameServer()->IsBomb(i)) {
+					str_copy(GameServer()->m_apPlayers[i]->m_TeeInfos.m_SkinName, "bomb",
+							sizeof(GameServer()->m_apPlayers[i]->m_TeeInfos.m_SkinName));
 
-			GameServer()->m_apPlayers[GameServer()->GetBIDs()]->m_TeeInfos.m_ColorBody = 16776960;
-			GameServer()->m_apPlayers[GameServer()->GetBIDs()]->m_TeeInfos.m_UseCustomColor = 1;
+					GameServer()->m_apPlayers[i]->m_TeeInfos.m_ColorBody = 16776960;
+					GameServer()->m_apPlayers[i]->m_TeeInfos.m_UseCustomColor = 1;
+				}
+			}
 		}
 
 		//TODO: update to handle multiple bombs
 		for(int j = 0; j < MAX_CLIENTS; j++) {
-			if(GameServer()->m_apPlayers[j] && j != GameServer()->GetBIDs()) {
+			if(GameServer()->m_apPlayers[j] && !GameServer()->IsBomb(j)) {
 
 				// If the player looks like a bomb, fix that...
 				if (strncmp("bomb", GameServer()->m_apPlayers[j]->m_TeeInfos.m_SkinName, 4) == 0)
@@ -117,14 +138,18 @@ void CGameControllerBOMBX::EnumerateLivePlayers()
 {
 	m_LivePlayers = 0;
 	m_ActivePlayers = 0;
-	std::fill_n(m_LiveIDs, 16, -1); // fill array with -1's instead of 0's since 0 is a valid player ID
+	m_LiveIDs.resize(0);
+	m_NotBombs.resize(0);
+//	std::fill_n(m_LiveIDs, 16, -1); // fill array with -1's instead of 0's since 0 is a valid player ID
 	for(int j = 0; j < MAX_CLIENTS; j++)
 	{
 		if(GameServer()->m_apPlayers[j] && GameServer()->m_apPlayers[j]->GetTeam() != TEAM_SPECTATORS)
 		{
-			m_LiveIDs[m_LivePlayers] = j;
+			m_LiveIDs.push_back(j);
 			m_LivePlayers++;
 			m_ActivePlayers++;
+			if (!GameServer()->IsBomb(j))
+				m_NotBombs.push_back(j);
 		}
 		else if (GameServer()->m_apPlayers[j] && GameServer()->m_apPlayers[j]->m_PreferredTeam != TEAM_SPECTATORS)
 		{
@@ -137,15 +162,18 @@ void CGameControllerBOMBX::EnumerateLivePlayers()
 int CGameControllerBOMBX::OnCharacterDeath(class CCharacter *pVictim, class CPlayer *pKiller, int Weapon)
 {
 	IGameController::OnCharacterDeath(pVictim, pKiller, Weapon);
+	EnumerateLivePlayers();
 	if(!m_Warmup){
 		pVictim->GetPlayer()->SetTeamDirect(TEAM_SPECTATORS);
-		if (GameServer()->GetBIDs() >= 0){
-			if (pVictim->GetPlayer()->GetCID() == GameServer()->GetBIDs() &&
-					GameServer()->m_apPlayers[GameServer()->GetBIDs()]) {
-				GameServer()->SetBID(-1); // Set the current bomb to undefined, so that the bomb will be reset.
-				// Bomb EXPLODE!!!!
-				pVictim->MakeDeathGrenade(pKiller);
-				pVictim->GetPlayer()->m_Score++; // Neutralize score loss due to blowing up
+		if (GameServer()->GetBIDs() > 0){
+			if (GameServer()->IsBomb(pVictim->GetPlayer()->GetCID())) {
+//				GameServer()->SetBID(-1); // Set the current bomb to undefined, so that the bomb will be reset.
+				GameServer()->RemoveBID(pVictim->GetPlayer()->GetCID());
+				if(GameServer()->m_apPlayers[pVictim->GetPlayer()->GetCID()]) {
+					// Bomb EXPLODE!!!!
+					pVictim->MakeDeathGrenade(pKiller);
+					pVictim->GetPlayer()->m_Score++; // Neutralize score loss due to blowing up
+				}
 			}
 			else if (Weapon == WEAPON_WORLD || pVictim->GetPlayer()->GetCID() == pKiller->GetCID())
 				pVictim->GetPlayer()->m_Score++; // Neutralize score loss due to fall/suicide
@@ -159,6 +187,7 @@ int CGameControllerBOMBX::OnCharacterDeath(class CCharacter *pVictim, class CPla
 					pVictim->GetPlayer()->m_Score++; // Neutralize score loss due to fall/suicide
 	}
 //	MakeWarningLasers(pKiller);
+	printf("BIDs after death: %o\n", (int) GameServer()->GetBIDs());
 	return 0;
 }
 
@@ -201,6 +230,12 @@ void CGameControllerBOMBX::PostReset()
 			GameServer()->m_apPlayers[i]->m_RespawnTick = Server()->Tick()+Server()->TickSpeed()/2;
 		}
 	}
+}
+
+void CGameControllerBOMBX::ChooseBomb() {
+	int BombChoice = (rand() % m_NotBombs.size());
+	GameServer()->SetBID(BombChoice);
+	GameServer()->SetFuse(g_Config.m_SvBombFuse*Server()->TickSpeed(), BombChoice);
 }
 
 void CGameControllerBOMBX::MakeWarningLasers(class CPlayer *pBomb)
