@@ -255,7 +255,7 @@ void CCharacter::FireWeapon()
 //TODO: update to handle multiple bombs, remove hammerback stuff temporarily
 				if (GameServer()->GetBIDs() >= 0) {
 					//Bomb passing off bomb to other person (or not)
-					if(GameServer()->IsBomb(m_pPlayer->GetCID())) {
+					if(GameServer()->IsBomb(m_pPlayer->GetCID()) && !GameServer()->IsBomb(pTarget->GetPlayer()->GetCID())) {
 //						if (GameServer()->CanHammerBack(pTarget->GetPlayer()->GetCID())) {
 							GameServer()->PassBID(pTarget->GetPlayer()->GetCID(), m_pPlayer->GetCID());
 //							GameServer()->SetHammerBack(g_Config.m_SvHammerBackDelay*Server()->TickSpeed()/1000);
