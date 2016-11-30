@@ -63,6 +63,10 @@ void CGameControllerBOMBX::Tick()
 	else // However, players cannot join during the actual game.
 	{
 		EnumerateLivePlayers();
+		if (m_ActivePlayers < 2) {
+			return; //Don't run code that requires players to be on the server to function.
+		}
+
 		// prevent new players from joining mid-game
 		g_Config.m_SvSpectatorSlots = min(MAX_CLIENTS-m_LivePlayers, MAX_CLIENTS-1);
 
@@ -214,7 +218,16 @@ void CGameControllerBOMBX::DoWincheck()
 			{
 				GameServer()->m_apPlayers[m_LiveIDs[0]]->m_Score++; // Reward last surviving player.
 			}
-			DoWarmup(g_Config.m_SvWarmup);
+			if (m_ActivePlayers < 2) { //If there aren't enough people, do safety stuff but don't start a warmup.
+				g_Config.m_SvSpectatorSlots = 0;
+				GameServer()->ResetBIDs();
+				if (m_LivePlayers == 1) { //...and if someone is around, tell them they need more people.
+					char bBuf[128];
+					str_format(bBuf, sizeof(bBuf), "At least 2 players are required to play");
+					GameServer()->SendBroadcast(bBuf,m_LiveIDs[0]);
+				}
+			}
+			else DoWarmup(g_Config.m_SvWarmup); //normal behavior when players are around; let people join for a limited time before next round
 		}
 	}
 }

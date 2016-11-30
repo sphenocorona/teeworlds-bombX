@@ -598,12 +598,13 @@ void CCharacter::Tick()
 	m_Health = (int) clamp(Server()->MaxClients() - g_Config.m_SvSpectatorSlots, 0, 10);
 
 //	Add an audible signal emitted by the bomb, and broadcast to players about the current status of the bomb.
+	//TODO: handle multiple bombs.
 	float CurrentFuse = ((float) GameServer()->GetFuse(m_pPlayer->GetCID()))/Server()->TickSpeed();
 	if ((int) (CurrentFuse + 1.l/Server()->TickSpeed()) > (int) CurrentFuse)
 	{
 		if (g_Config.m_SvBombBroadcast)
 		{
-			char bBuf[128]; //TODO: update to handle multiple bombs
+			char bBuf[128];
 			if (GameServer()->IsBomb(m_pPlayer->GetCID()))
 			{
 				str_format(bBuf, sizeof(bBuf), "You are the bomb! Hit someone in %d seconds or you'll explode!", (int) CurrentFuse);
